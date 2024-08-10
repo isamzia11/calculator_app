@@ -1,6 +1,8 @@
 import 'package:calculator_app/components/my_button.dart';
 import 'package:calculator_app/constant.dart';
 import 'package:flutter/material.dart';
+import 'package:math_expressions/math_expressions.dart';
+import 'package:math_expressions/math_expressions.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -63,8 +65,35 @@ class _HomeScreenState extends State<HomeScreen> {
                       MyButton(
                         title: "+/-",
                         onPressed: () {
-                          userInput += "+/-";
-                          setState(() {});
+                          setState(() {
+                            if (userInput.isNotEmpty) {
+                              // Find the index of the last operator in the input
+                              int i = userInput.length - 1;
+                              while (i >= 0 &&
+                                  (userInput[i] != '+' &&
+                                      userInput[i] != '-' &&
+                                      userInput[i] != 'x' &&
+                                      userInput[i] != '/' &&
+                                      userInput[i] != '%')) {
+                                i--;
+                              }
+
+                              // Extract the last number
+                              String lastNumber = userInput.substring(i + 1);
+
+                              // Toggle the sign of the last number
+                              if (lastNumber.isNotEmpty) {
+                                if (lastNumber.startsWith('-')) {
+                                  userInput = userInput.substring(0, i + 1) +
+                                      lastNumber.substring(1);
+                                } else {
+                                  userInput = userInput.substring(0, i + 1) +
+                                      '-' +
+                                      lastNumber;
+                                }
+                              }
+                            }
+                          });
                         },
                       ),
                       MyButton(
@@ -259,24 +288,53 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    // Evaluate from left to right without considering precedence
-    double result = double.parse(tokens[0]);
+    // Evaluate the expression
+    try {
+      double result = _evaluateExpression(tokens);
+      answer = result.toString();
+    } catch (e) {
+      answer = 'Error'; // Handle any errors gracefully
+    }
+  }
 
-    for (int i = 1; i < tokens.length; i += 2) {
-      String operator = tokens[i];
-      double nextNumber = double.parse(tokens[i + 1]);
-
-      if (operator == '+') {
-        result += nextNumber;
-      } else if (operator == '-') {
-        result -= nextNumber;
-      } else if (operator == 'x') {
-        result *= nextNumber;
-      } else if (operator == '/') {
-        result /= nextNumber;
+// Helper method to evaluate the expression
+  double _evaluateExpression(List<String> tokens) {
+    // Convert x to * for multiplication
+    for (int i = 0; i < tokens.length; i++) {
+      if (tokens[i] == 'x') {
+        tokens[i] = '*';
       }
     }
 
-    answer = result.toString();
+    // Use a stack to evaluate the expression
+    List<String> stack = [];
+    String currentOp = '+';
+    double currentNumber = 0.0;
+
+    for (String token in tokens) {
+      if (double.tryParse(token) != null) {
+        double number = double.parse(token);
+        if (currentOp == '+') {
+          currentNumber = number;
+        } else if (currentOp == '-') {
+          currentNumber = -number;
+        } else if (currentOp == '*') {
+          currentNumber *= number;
+        } else if (currentOp == '/') {
+          currentNumber /= number;
+        }
+        stack.add(currentNumber.toString());
+      } else {
+        currentOp = token;
+      }
+    }
+
+    // Final evaluation
+    double result = 0.0;
+    for (String item in stack) {
+      result += double.parse(item);
+    }
+
+    return result;
   }
 }
