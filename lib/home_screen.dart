@@ -1,7 +1,6 @@
 import 'package:calculator_app/components/my_button.dart';
 import 'package:calculator_app/constant.dart';
 import 'package:flutter/material.dart';
-import 'package:math_expressions/math_expressions.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -232,7 +231,11 @@ class _HomeScreenState extends State<HomeScreen> {
     // Separate numbers and operators
     for (int i = 0; i < userInput.length; i++) {
       String char = userInput[i];
-      if (char == '+' || char == '-' || char == 'x' || char == '/') {
+      if (char == '+' ||
+          char == '-' ||
+          char == 'x' ||
+          char == '/' ||
+          char == '%') {
         if (number.isNotEmpty) {
           tokens.add(number); // Add the current number to the list
           number = '';
@@ -244,6 +247,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     if (number.isNotEmpty) {
       tokens.add(number); // Add the last number
+    }
+
+    // Handle percentages first
+    for (int i = 0; i < tokens.length; i++) {
+      if (tokens[i] == '%') {
+        double prevNumber = double.parse(tokens[i - 1]);
+        tokens[i - 1] = (prevNumber / 100).toString(); // Convert to percentage
+        tokens.removeAt(i); // Remove the % operator
+        i--; // Adjust index after removal
+      }
     }
 
     // Evaluate from left to right without considering precedence
