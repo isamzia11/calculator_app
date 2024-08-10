@@ -288,6 +288,13 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
+    // Convert x to * for multiplication
+    for (int i = 0; i < tokens.length; i++) {
+      if (tokens[i] == 'x') {
+        tokens[i] = '*';
+      }
+    }
+
     // Evaluate the expression
     try {
       double result = _evaluateExpression(tokens);
@@ -299,40 +306,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
 // Helper method to evaluate the expression
   double _evaluateExpression(List<String> tokens) {
-    // Convert x to * for multiplication
-    for (int i = 0; i < tokens.length; i++) {
-      if (tokens[i] == 'x') {
-        tokens[i] = '*';
+    double result = double.parse(tokens[0]);
+    for (int i = 1; i < tokens.length; i += 2) {
+      String op = tokens[i];
+      double num = double.parse(tokens[i + 1]);
+      if (op == '+') {
+        result += num;
+      } else if (op == '-') {
+        result -= num;
+      } else if (op == '*') {
+        result *= num;
+      } else if (op == '/') {
+        result /= num;
       }
-    }
-
-    // Use a stack to evaluate the expression
-    List<String> stack = [];
-    String currentOp = '+';
-    double currentNumber = 0.0;
-
-    for (String token in tokens) {
-      if (double.tryParse(token) != null) {
-        double number = double.parse(token);
-        if (currentOp == '+') {
-          currentNumber = number;
-        } else if (currentOp == '-') {
-          currentNumber = -number;
-        } else if (currentOp == '*') {
-          currentNumber *= number;
-        } else if (currentOp == '/') {
-          currentNumber /= number;
-        }
-        stack.add(currentNumber.toString());
-      } else {
-        currentOp = token;
-      }
-    }
-
-    // Final evaluation
-    double result = 0.0;
-    for (String item in stack) {
-      result += double.parse(item);
     }
 
     return result;
